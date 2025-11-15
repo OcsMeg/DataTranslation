@@ -12,6 +12,25 @@ TagManager:
   - RHandTargetAnchor
   - FirstCameraPosition
   - OVRCameraRig
+  - QDSUIBackplateGradient
+  - QDSUISection
+  - QDSUIIcon
+  - QDSUISharedThemeColor
+  - QDSUIDestructiveButton
+  - QDSUIToggleButton
+  - QDSUITextSecondaryColor
+  - QDSUITooltip
+  - QDSUIToggleCheckboxRadio
+  - QDSUIToggleBorderlessButton
+  - QDSUIToggleSwitch
+  - QDSUIAccentColor
+  - QDSUIPrimaryButton
+  - QDSUITextInvertedColor
+  - QDSUITextSecondaryInvertedColor
+  - QDSUISecondaryButton
+  - QDSUITextInputField
+  - QDSUIBorderlessButton
+  - PlayerRoot
   layers:
   - Default
   - TransparentFX

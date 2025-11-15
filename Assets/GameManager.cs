@@ -56,7 +56,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             room.SetActive(false);
         } else if (PlayerMode.GetSelectedPlayMode() == PlayerMode.PlayMode.VR)
         {
-            camera = Instantiate(Resources.Load<GameObject>("Camera/VRCameraRig"),spawnPoint, Quaternion.identity);
+            camera = Instantiate(Resources.Load<GameObject>("Camera/VROrigin"),spawnPoint, Quaternion.identity);
             player = PhotonNetwork.Instantiate("VRPlayerPsys", spawnPoint, Quaternion.identity);
             
             // MetaXRMovementSDK用の文

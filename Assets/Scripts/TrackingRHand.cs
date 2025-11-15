@@ -15,6 +15,7 @@ public class TrackingRHand : MonoBehaviour
         if (rHandTargetAnchor != null)
         {
             transform.position = rHandTargetAnchor.transform.position;
+            transform.rotation = rHandTargetAnchor.transform.rotation;
         }
     }
     
