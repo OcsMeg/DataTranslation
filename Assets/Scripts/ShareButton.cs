@@ -11,7 +11,8 @@ public class ShareButton : MonoBehaviour
 
     private List<Toggle> toggles = new List<Toggle>();
     
-    [SerializeField] private TextMeshProUGUI shareText;
+    // デバッグ用
+    //[SerializeField] private TextMeshProUGUI shareText;
     private DataSharing dataSharing;
 
     void Start()
@@ -51,7 +52,7 @@ public class ShareButton : MonoBehaviour
     {
         bool anySelected = toggles.Exists(t => t.isOn);
         shareButton.interactable = anySelected;
-        shareText.text = "kakunin";
+        //shareText.text = "kakunin";
     }
 
     /// <summary>
@@ -65,7 +66,7 @@ public class ShareButton : MonoBehaviour
         {
             if (tg.isOn)
             {
-                // 子オブジェクトから TextMeshProUGUI を探す
+                // 子オブジェクトから FileIDMemory を探す
                 FileIDMemory id = tg.GetComponentInChildren<FileIDMemory>();
 
                 if (id != null)
@@ -74,7 +75,7 @@ public class ShareButton : MonoBehaviour
                 }
             }
         }
-        shareText.text = "itterude";
+        //shareText.text = "itterude";
         // DataSharing関数に渡す（中身はあなたが実装）
         DataSharing(selectedID);
     }

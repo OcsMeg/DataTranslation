@@ -65,6 +65,7 @@ public class ModeSelectManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Z))
         {
             SelectMode(PlayerMode.PlayMode.GOD);
+            
         }
 
         // PCデバッグ用 左右
@@ -140,6 +141,11 @@ public class ModeSelectManager : MonoBehaviour
 
         modeSelectCanvas.enabled = false;
         loginCanvas.enabled = true;
+
+        if (PlayerMode.GetSelectedPlayMode() == PlayerMode.PlayMode.GOD)
+        {
+            SceneManager.LoadScene("PlayScene");
+        }
 
         loginManager.LoginStart();
     }

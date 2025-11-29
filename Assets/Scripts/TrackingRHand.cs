@@ -19,10 +19,10 @@ public class TrackingRHand : MonoBehaviour
         }
     }
     
-    private void FindRHandTarget(GameObject card)
+    private void FindRHandTarget(GameObject rTarget)
     {
         // シーン内から "RHandTargetAnchor" という名前のオブジェクトを探す
-        rHandTargetAnchor = card;
+        rHandTargetAnchor = rTarget;
 
         if (rHandTargetAnchor == null)
         {
@@ -30,8 +30,8 @@ public class TrackingRHand : MonoBehaviour
         }
     }
 
-    public void TrackCard(GameObject card)
+    public void TrackCard(GameObject rTarget)
     {
-        FindRHandTarget(card);
+        FindRHandTarget(rTarget);
     }
 }

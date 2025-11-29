@@ -7,11 +7,26 @@ public class ReceiveID : MonoBehaviour, IPunInstantiateMagicCallback
     [SerializeField] private string userID;
     private PhotonView photonView;
     private DataSharing dataSharing;
+
     private void Awake()
     {
         photonView = GetComponent<PhotonView>();
-        GameObject playerRoot = GameObject.FindGameObjectWithTag("PlayerRoot");
-        dataSharing = playerRoot.GetComponent<DataSharing>();
+
+        // ローカルプレイヤーの DataSharing を探す
+        foreach (var ds in FindObjectsOfType<DataSharing>())
+        {
+            var pv = ds.GetComponent<PhotonView>();
+            if (pv != null && pv.IsMine)
+            {
+                dataSharing = ds;
+                break;
+            }
+        }
+
+        if (dataSharing == null)
+        {
+            Debug.LogError("ReceiveID: ローカルの DataSharing が見つかりません");
+        }
     }
 
     public string GetUserID()
@@ -19,27 +34,38 @@ public class ReceiveID : MonoBehaviour, IPunInstantiateMagicCallback
         return userID;
     }
 
+    // ReceivingCard 生成時に一度だけ呼ばれる
     public void OnPhotonInstantiate(PhotonMessageInfo info)
     {
         object[] data = info.photonView.InstantiationData;
 
         if (data != null && data.Length > 0)
         {
-            userID = data[0] as string;
-            Debug.Log($"生成したユーザーID: {userID}");
+            // CardManager から new object[]{ userID } で渡されたもの
+            userID = data[0].ToString();
+            Debug.Log($"[ReceiveID] 生成したユーザーID: {userID}");
         }
         else
         {
-            Debug.Log("データがないです");
+            Debug.LogWarning("[ReceiveID] InstantiationData がありません");
         }
     }
+
     private void OnTriggerEnter(Collider other)
     {
         var otherView = other.GetComponent<PhotonView>();
         if (otherView != null && otherView.IsMine)
         {
-            Debug.Log($"このオブジェクトは {userID}が出したものです");
-            dataSharing.ReceiveUserID(userID);
+            Debug.Log($"[ReceiveID] このReceivingCardの持ち主は {userID} です");
+
+            if (dataSharing != null)
+            {
+                dataSharing.ReceiveUserID(userID);
+            }
+            else
+            {
+                Debug.LogError("[ReceiveID] dataSharing が設定されていません");
+            }
         }
     }
 }

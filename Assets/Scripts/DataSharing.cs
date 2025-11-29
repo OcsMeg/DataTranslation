@@ -13,6 +13,7 @@ public class DataSharing : MonoBehaviour
     private GameObject shareCard;
     private bool isSharing = false;
     private ImageLoader imageLoader;
+    private PhotonView photonView;
     public class ShareRequest
     {
         public int file_id;
@@ -38,21 +39,22 @@ public class DataSharing : MonoBehaviour
         api = GetComponent<ApiClient>();
         currentUser = PlayerMode.GetPlayerName();
         imageLoader = GetComponent<ImageLoader>();
+        photonView = GetComponent<PhotonView>();
     }
     public void StartSharing(List<int> selectedID)
     {
-        InstantiateSharingCard();
+        if (!photonView.IsMine) return;
         sharingFileIDs = selectedID;
+        InstantiateSharingCard();
         isSharing = true;
         imageLoader.CloseDisplayCanvas();
     }
 
     private void InstantiateSharingCard()
     {
-        shareCard = PhotonNetwork.Instantiate("preCard", RHandTarget.transform.position, RHandTarget.transform.rotation, 0);
-        
+        shareCard = PhotonNetwork.Instantiate("SendingCardRoot", RHandTarget.transform.position, RHandTarget.transform.rotation, 0,new object[] { sharingFileIDs[0] });
         // 追従スクリプトにターゲットを渡す
-        TrackingRHand trackingRHand = shareCard.GetComponent<TrackingRHand>();
+        TrackingRHand trackingRHand = shareCard.GetComponentInChildren<TrackingRHand>();
         trackingRHand.TrackCard(RHandTarget);
     }
 

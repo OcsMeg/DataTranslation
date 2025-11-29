@@ -89,7 +89,7 @@ public class CardManager : MonoBehaviour
             userID = PlayerMode.GetPlayerName();
 
             card = PhotonNetwork.Instantiate(
-                "PreCard",
+                "ReceivingCard",
                 RHandTarget.transform.position,
                 Quaternion.identity,
                 0,

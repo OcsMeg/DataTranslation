@@ -4,25 +4,19 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
-using UnityEngine.XR;
-using System.Collections.Generic;
 
 public class ImageLoader : MonoBehaviour
 {
     private string userName;
+
     [SerializeField] private Transform parent;
     [SerializeField] private GameObject imagePrefab;
     [SerializeField] private Canvas displayCanvas;
 
     private ApiClient api;
-    private bool isTriggered = false;
     private string fileName;
     private int fileNum;
     private PhotonView photonView;
-    private bool prevXPressed = false;
-    // XR 左コントローラー
-    private InputDevice leftController;
-    private bool closeCanvas = false;
 
     // ---------- APIレスポンス用データクラス ----------
     [System.Serializable]
@@ -50,6 +44,9 @@ public class ImageLoader : MonoBehaviour
     }
     // ---------------------------------------------------
 
+    /// <summary>現在 Canvas が表示中かどうか</summary>
+    public bool IsDisplayVisible => displayCanvas != null && displayCanvas.enabled;
+
     void Start()
     {
         api = GetComponent<ApiClient>();
@@ -57,72 +54,71 @@ public class ImageLoader : MonoBehaviour
 
         userName = PlayerMode.GetPlayerName();
 
-        displayCanvas.enabled = false;
-
-        GetLeftController();
+        if (displayCanvas != null)
+            displayCanvas.enabled = false;
     }
 
-    void Update()
+    #region 外部から呼ぶ用 API
+
+    /// <summary>
+    /// 表示・非表示をトグル
+    /// </summary>
+    public void ToggleDisplay()
     {
-        if (!leftController.isValid)
-            GetLeftController();
-
-        if (!photonView.IsMine) return;
-
-        bool xPressedNow = false;
-
-        // XRコントローラーの Xボタン状態を取得
-        if (leftController.TryGetFeatureValue(CommonUsages.primaryButton, out bool xPressed))
-            xPressedNow = xPressed;
-
-        bool xButtonDown = (xPressedNow && !prevXPressed); // ← 1回押しのみ検知！
-
-        // キーボード P も同様に扱う
-        bool pKeyDown = Input.GetKeyDown(KeyCode.P);
-
-        // トグル条件をまとめる
-        bool togglePressed = xButtonDown || pKeyDown || closeCanvas;
-
-
-        if (togglePressed)
+        if (IsDisplayVisible)
         {
-            // 表示状態をトグル
-            displayCanvas.enabled = !displayCanvas.enabled;
-
-            // 初回表示なら画像読み込み
-            if (displayCanvas.enabled && !isTriggered)
-            {
-                isTriggered = true;
-                StartCoroutine(LoadImagesFlow());
-            }
+            HideDisplay();
         }
-
-        // 前回の状態を保存
-        prevXPressed = xPressedNow;
-        // closeCanvasはリセット
-        closeCanvas = false;
-    }
-
-    public void CloseDisplayCanvas()
-    {
-        closeCanvas = true;
+        else
+        {
+            ShowDisplay();
+        }
     }
 
     /// <summary>
-    /// 左コントローラー取得（Xボタンを使うため）
+    /// Canvas を表示し、画像リストを読み込む
     /// </summary>
-    private void GetLeftController()
+    public void ShowDisplay()
     {
-        var devices = new List<InputDevice>();
+        if (displayCanvas == null) return;
 
-        InputDevices.GetDevicesWithCharacteristics(
-            InputDeviceCharacteristics.Left | InputDeviceCharacteristics.Controller,
-            devices);
+        displayCanvas.enabled = true;
 
-        if (devices.Count > 0)
+        ClearImages();
+        StartCoroutine(LoadImagesFlow());
+    }
+
+    /// <summary>
+    /// Canvas を非表示にし、画像をクリア
+    /// </summary>
+    public void HideDisplay()
+    {
+        if (displayCanvas == null) return;
+
+        displayCanvas.enabled = false;
+        ClearImages();
+    }
+
+    /// <summary>
+    /// UI ボタンから呼ぶ用（既存の CloseDisplayCanvas を生かす）
+    /// </summary>
+    public void CloseDisplayCanvas()
+    {
+        HideDisplay();
+    }
+
+    #endregion
+
+    /// <summary>
+    /// ImagePrefab の全削除 or 非表示
+    /// </summary>
+    private void ClearImages()
+    {
+        if (parent == null) return;
+
+        foreach (Transform child in parent)
         {
-            leftController = devices[0];
-            Debug.Log("左コントローラー取得 (ImageLoader)");
+            child.gameObject.SetActive(false); // 完全に消したいなら Destroy(child.gameObject);
         }
     }
 
@@ -190,13 +186,13 @@ public class ImageLoader : MonoBehaviour
 
         TextMeshProUGUI tmp = obj.GetComponentInChildren<TextMeshProUGUI>();
         if (tmp != null) tmp.text = fileName;
-        
+
         FileIDMemory mem = obj.GetComponent<FileIDMemory>();
         mem.SetFileID(fileNum);
 
         Debug.Log("[ImageLoader] 画像生成完了");
-        
-        //トグルをセットする
+
+        // トグル設定（既存仕様を維持）
         ShareButton shareButtonScript = GetComponentInChildren<ShareButton>();
         shareButtonScript.SetSearchToggle();
     }

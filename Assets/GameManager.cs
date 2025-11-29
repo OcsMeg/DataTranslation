@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         //VR・MR・神視点別にプレイヤー生成
         if (PlayerMode.GetSelectedPlayMode() == PlayerMode.PlayMode.MR)
         {
-            camera = Instantiate(Resources.Load<GameObject>("Camera/MRCameraRig"),spawnPoint, Quaternion.identity);
+            camera = Instantiate(Resources.Load<GameObject>("Camera/MROrigin"),spawnPoint, Quaternion.identity);
             player = PhotonNetwork.Instantiate("MRPlayerPsys", spawnPoint, Quaternion.identity);
             room.SetActive(false);
         } else if (PlayerMode.GetSelectedPlayMode() == PlayerMode.PlayMode.VR)
