@@ -2,6 +2,7 @@ using Meta.XR.Movement.Retargeting;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
+using ExitGames.Client.Photon;
 
 public class GameManager : MonoBehaviourPunCallbacks
 {
@@ -13,15 +14,54 @@ public class GameManager : MonoBehaviourPunCallbacks
     public Vector3 spawnPoint;
     [SerializeField] private GameObject room;
     [SerializeField] private GameObject passThrough;
-    
+
+    // ★ ルームのカスタムプロパティで使うキー
+    private const string ROOM_USER_LIST_KEY = "UserList";
 
     void Start()
     {
+        // ★ ここでユーザ名を Photon に渡しておく
+        //    自分のシステム側のユーザ名を使ってください
+        //    例：UserNameManager.CurrentUserName など
+        PhotonNetwork.NickName = PlayerMode.GetPlayerName();
+        // ↑ 実際は上の行を自分のユーザ名変数に書き換えてください
+
         PhotonNetwork.ConnectUsingSettings();
-        //spawnPoint登録
+
+        // spawnPoint登録
         spawnPoint = GameObject.FindGameObjectWithTag("spawnPoint").transform.position;
-        
     }
+    
+    void Update()
+    {
+        // エディタ実行時に L キーを押したら、現在の参加者リストをログに出す
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            var userList = GetRoomUserNameList();
+
+            Debug.Log("===== [Debug] 現在のユーザ名リスト =====");
+
+            if (userList.Count == 0)
+            {
+                Debug.Log("ユーザリストが空です（まだ誰も入室していないか、CustomProperties 未設定）");
+            }
+            else
+            {
+                foreach (var name in userList)
+                {
+                    Debug.Log($"ユーザ: {name}");
+                }
+            }
+
+            // おまけ：Photon が持っている生の PlayerList も確認したい場合
+            Debug.Log("===== [Debug] PhotonNetwork.PlayerList =====");
+            foreach (var p in PhotonNetwork.PlayerList)
+            {
+                Debug.Log($"ActorNumber: {p.ActorNumber}, NickName: {p.NickName}");
+            }
+        }
+    }
+
 
     // ルームに参加する処理
     public override void OnConnectedToMaster()
@@ -42,46 +82,31 @@ public class GameManager : MonoBehaviourPunCallbacks
     // ルーム参加に成功した時の処理
     public override void OnJoinedRoom()
     {
+        // ★ まず自分の名前をルームのユーザリストに追加
+        AddUserNameToRoomList(PhotonNetwork.NickName);
+
         if (PhotonObject == null)
         {
             Debug.LogError("PhotonObject is not set in the inspector.");
             return;
         }
-        
-        //VR・MR・神視点別にプレイヤー生成
+
+        // VR・MR・神視点別にプレイヤー生成
         if (PlayerMode.GetSelectedPlayMode() == PlayerMode.PlayMode.MR)
         {
-            camera = Instantiate(Resources.Load<GameObject>("Camera/MROrigin"),spawnPoint, Quaternion.identity);
+            camera = Instantiate(Resources.Load<GameObject>("Camera/MROrigin"), spawnPoint, Quaternion.identity);
             player = PhotonNetwork.Instantiate("MRPlayerPsys", spawnPoint, Quaternion.identity);
             room.SetActive(false);
-        } else if (PlayerMode.GetSelectedPlayMode() == PlayerMode.PlayMode.VR)
+        }
+        else if (PlayerMode.GetSelectedPlayMode() == PlayerMode.PlayMode.VR)
         {
-            camera = Instantiate(Resources.Load<GameObject>("Camera/VROrigin"),spawnPoint, Quaternion.identity);
+            camera = Instantiate(Resources.Load<GameObject>("Camera/VROrigin"), spawnPoint, Quaternion.identity);
             player = PhotonNetwork.Instantiate("VRPlayerPsys", spawnPoint, Quaternion.identity);
-            
-            // MetaXRMovementSDK用の文
-            // if (player != null)
-            // {
-            //     CharacterRetargeter retargeter = player.GetComponent<CharacterRetargeter>();
-            //     if (retargeter != null)
-            //     {
-            //         retargeter.enabled = true;
-            //         Debug.Log("PlayerのCharacterRetargeterを有効化しました");
-            //     }
-            //     else
-            //     {
-            //         Debug.LogWarning("PlayerにCharacterRetargeterが見つかりません");
-            //     }
-            // }
-            // else
-            // {
-            //     Debug.LogWarning("player が null です");
-            // }
-            
             passThrough.SetActive(false);
-        } else if (PlayerMode.GetSelectedPlayMode() == PlayerMode.PlayMode.GOD)
+        }
+        else if (PlayerMode.GetSelectedPlayMode() == PlayerMode.PlayMode.GOD)
         {
-            
+
         }
 
         if (PlayerMode.GetSelectedPlayMode() != PlayerMode.PlayMode.GOD)
@@ -89,6 +114,13 @@ public class GameManager : MonoBehaviourPunCallbacks
             CreatePhotonAvatar createPhotonAvatar = player.GetComponent<CreatePhotonAvatar>();
             createPhotonAvatar.ExecuteCreatePhotonAvatar();
         }
+    }
+
+    // ★ 他のプレイヤーがルームから抜けた時にユーザリストから削除
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        base.OnPlayerLeftRoom(otherPlayer);
+        RemoveUserNameFromRoomList(otherPlayer.NickName);
     }
 
     // OnDisconnectedという名前だがルーム切断時のみではなく接続失敗時にも実行する処理
@@ -108,5 +140,104 @@ public class GameManager : MonoBehaviourPunCallbacks
             Debug.LogError("PhotonFailureObject is not set in the inspector.");
         }
     }
-}
 
+    /// <summary>
+    /// ルームの CustomProperties に自分のユーザ名を追加
+    /// </summary>
+    private void AddUserNameToRoomList(string userName)
+    {
+        if (PhotonNetwork.CurrentRoom == null) return;
+
+        // 既存の UserList を取得
+        var room = PhotonNetwork.CurrentRoom;
+
+        System.Collections.Generic.List<string> userList = new System.Collections.Generic.List<string>();
+
+        if (room.CustomProperties != null &&
+            room.CustomProperties.ContainsKey(ROOM_USER_LIST_KEY))
+        {
+            string[] current = room.CustomProperties[ROOM_USER_LIST_KEY] as string[];
+            if (current != null)
+            {
+                userList.AddRange(current);
+            }
+        }
+
+        // 重複チェック
+        if (!userList.Contains(userName))
+        {
+            userList.Add(userName);
+        }
+
+        // CustomProperties を更新
+        Hashtable hash = new Hashtable();
+        hash[ROOM_USER_LIST_KEY] = userList.ToArray();
+        room.SetCustomProperties(hash);
+    }
+
+    /// <summary>
+    /// ルームの CustomProperties から指定ユーザ名を削除
+    /// </summary>
+    private void RemoveUserNameFromRoomList(string userName)
+    {
+        if (PhotonNetwork.CurrentRoom == null) return;
+
+        var room = PhotonNetwork.CurrentRoom;
+        if (room.CustomProperties == null ||
+            !room.CustomProperties.ContainsKey(ROOM_USER_LIST_KEY))
+        {
+            return;
+        }
+
+        string[] current = room.CustomProperties[ROOM_USER_LIST_KEY] as string[];
+        if (current == null) return;
+
+        var userList = new System.Collections.Generic.List<string>(current);
+
+        if (userList.Contains(userName))
+        {
+            userList.Remove(userName);
+
+            Hashtable hash = new Hashtable();
+            hash[ROOM_USER_LIST_KEY] = userList.ToArray();
+            room.SetCustomProperties(hash);
+        }
+    }
+
+    /// <summary>
+    /// いつでも呼び出して、最新のユーザ名リストを取れるようにしておく
+    /// </summary>
+    public static System.Collections.Generic.List<string> GetRoomUserNameList()
+    {
+        if (PhotonNetwork.CurrentRoom == null ||
+            PhotonNetwork.CurrentRoom.CustomProperties == null ||
+            !PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey(ROOM_USER_LIST_KEY))
+        {
+            return new System.Collections.Generic.List<string>();
+        }
+
+        string[] current = PhotonNetwork.CurrentRoom.CustomProperties[ROOM_USER_LIST_KEY] as string[];
+        if (current == null) return new System.Collections.Generic.List<string>();
+
+        return new System.Collections.Generic.List<string>(current);
+    }
+
+    /// <summary>
+    /// ルームの CustomProperties が更新されたときに呼ばれる
+    /// → UI のユーザリストを更新したいときに使える
+    /// </summary>
+    public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
+    {
+        base.OnRoomPropertiesUpdate(propertiesThatChanged);
+
+        if (propertiesThatChanged.ContainsKey(ROOM_USER_LIST_KEY))
+        {
+            var list = GetRoomUserNameList();
+            Debug.Log("=== Room User List Updated ===");
+            foreach (var name in list)
+            {
+                Debug.Log($"User: {name}");
+            }
+        }
+    }
+}

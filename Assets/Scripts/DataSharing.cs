@@ -4,7 +4,6 @@ using UnityEngine;
 using Photon.Pun;
 public class DataSharing : MonoBehaviour
 {
-    [SerializeField] private GameObject RHandTarget;
     private List<int> sharingFileIDs;
     private ApiClient api;
     private string currentUser; //共有するユーザのID
@@ -14,6 +13,9 @@ public class DataSharing : MonoBehaviour
     private bool isSharing = false;
     private ImageLoader imageLoader;
     private PhotonView photonView;
+    private HoverMethod hoverMethod;
+    [SerializeField] private GUIMethod guiMethod;
+    [SerializeField] private GUIShareButton guiShareButton;
     public class ShareRequest
     {
         public int file_id;
@@ -40,24 +42,33 @@ public class DataSharing : MonoBehaviour
         currentUser = PlayerMode.GetPlayerName();
         imageLoader = GetComponent<ImageLoader>();
         photonView = GetComponent<PhotonView>();
+        hoverMethod = GetComponent<HoverMethod>();
+        guiMethod = GetComponent<GUIMethod>();
+        //guiShareButton = GetComponentInChildren<GUIShareButton>();
     }
     public void StartSharing(List<int> selectedID)
     {
         if (!photonView.IsMine) return;
         sharingFileIDs = selectedID;
-        InstantiateSharingCard();
+        // 共有手法ごとに処理を分ける
+        // ホバー型（かざし型）
+        if (ShareMode.GetShareMethod() == ShareMode.ShareMethod.Hover)
+        {
+            hoverMethod.InstantiateSharingCard(sharingFileIDs);
+            imageLoader.CloseDisplayCanvas();
+        } // Ray型
+        else if (ShareMode.GetShareMethod() == ShareMode.ShareMethod.Ray)
+        {
+            imageLoader.CloseDisplayCanvas();
+        } // GUI操作型
+        else if (ShareMode.GetShareMethod() == ShareMode.ShareMethod.GUI)
+        {
+            guiMethod.SelectRecipient();
+            //guiShareButton.SetSearchToggle();
+        }
         isSharing = true;
-        imageLoader.CloseDisplayCanvas();
     }
-
-    private void InstantiateSharingCard()
-    {
-        shareCard = PhotonNetwork.Instantiate("SendingCardRoot", RHandTarget.transform.position, RHandTarget.transform.rotation, 0,new object[] { sharingFileIDs[0] });
-        // 追従スクリプトにターゲットを渡す
-        TrackingRHand trackingRHand = shareCard.GetComponentInChildren<TrackingRHand>();
-        trackingRHand.TrackCard(RHandTarget);
-    }
-
+    
     public void ReceiveUserID(string userID)
     {
         if (isSharing)
@@ -69,7 +80,7 @@ public class DataSharing : MonoBehaviour
             }
             
             // 交換が終わったらshareCardを消す
-            shareCard.SetActive(false);
+            //shareCard.SetActive(false);
         }
     }
     

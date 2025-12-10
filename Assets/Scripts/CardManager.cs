@@ -1,62 +1,97 @@
+using System.Collections.Generic;
 using UnityEngine;
-using System.Collections;
 using Photon.Pun;
 using UnityEngine.XR;
-using System.Collections.Generic;
 
 public class CardManager : MonoBehaviour
 {
-    [SerializeField] private GameObject RHandTarget;
+    [Header("参照")]
+    [SerializeField] private GameObject RHandTarget;              // 右手の追従ターゲット
+    [SerializeField] private HandGestureDetector rightHandDetector; // 右手用ジェスチャ検出（useRightHand = true にしておく）
 
-    // カードオブジェクト
-    private GameObject card;
-
-    // カード生成済みかどうか
+    private GameObject card;     // 生成したカード
     private bool isCreated = false;
 
     private PhotonView photonView;
 
     // XR右コントローラー
     private InputDevice rightController;
-
-    // ボタンの前フレーム値
     private bool prevBPressed = false;
 
     private string userID;
 
-    void Start()
+    void Awake()
     {
         photonView = GetComponent<PhotonView>();
+    }
+
+    void OnEnable()
+    {
+        // 右手のグーイベントに登録
+        if (rightHandDetector != null)
+        {
+            rightHandDetector.OnFist += HandleRightHandFist;
+        }
+    }
+
+    void OnDisable()
+    {
+        // イベント解除（シーン遷移などで重複登録しないように）
+        if (rightHandDetector != null)
+        {
+            rightHandDetector.OnFist -= HandleRightHandFist;
+        }
+    }
+
+    void Start()
+    {
         GetRightController();
     }
 
     void Update()
     {
+        // 自分のプレイヤー以外は無視
         if (!photonView.IsMine) return;
 
+        // Hover 以外のモードでは何もしない
+        if (ShareMode.GetShareMethod() != ShareMode.ShareMethod.Hover)
+            return;
+
+        // --- コントローラ B ボタンでのトグル ---
         if (!rightController.isValid)
             GetRightController();
 
-        // Bボタン（右手の secondaryButton）
-        bool bPressed = false;
-        if (rightController.TryGetFeatureValue(CommonUsages.secondaryButton, out bool pressed))
+        bool bPressedNow = false;
+        if (rightController.isValid &&
+            rightController.TryGetFeatureValue(CommonUsages.secondaryButton, out bool pressed))
         {
-            bPressed = pressed;
+            bPressedNow = pressed;
         }
 
-        // GetDown と同じ動作（押した瞬間のみ）
-        if (bPressed && !prevBPressed)
+        if (bPressedNow && !prevBPressed)
         {
-            ToggleCard();
+            ToggleCardCreateOrDestroy();
         }
 
-        prevBPressed = bPressed;
+        prevBPressed = bPressedNow;
 
-        // PC 用テストキー（任意）
+        // PC テスト用キー
         if (Input.GetKeyDown(KeyCode.Y))
         {
-            ToggleCard();
+            ToggleCardCreateOrDestroy();
         }
+    }
+
+    /// <summary>
+    /// 右手がグーになった瞬間に呼ばれる（HandGestureDetector.OnFist）
+    /// </summary>
+    private void HandleRightHandFist()
+    {
+        // 念のためオーナーチェック & ShareMode チェック
+        if (!photonView.IsMine) return;
+        if (ShareMode.GetShareMethod() != ShareMode.ShareMethod.Hover) return;
+
+        ToggleCardCreateOrDestroy();
     }
 
     /// <summary>
@@ -79,36 +114,49 @@ public class CardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// カードの生成、または表示/非表示切り替え
+    /// カードがなければ生成して右手に追従、あれば破棄
     /// </summary>
-    private void ToggleCard()
+    private void ToggleCardCreateOrDestroy()
     {
-        if (!isCreated)
+        // まだない → 生成
+        if (!isCreated || card == null)
         {
-            // 初回：カード生成
             userID = PlayerMode.GetPlayerName();
+
+            Vector3 spawnPos = RHandTarget != null
+                ? RHandTarget.transform.position
+                : transform.position;
+
+            Quaternion spawnRot = RHandTarget != null
+                ? RHandTarget.transform.rotation
+                : Quaternion.identity;
 
             card = PhotonNetwork.Instantiate(
                 "ReceivingCard",
-                RHandTarget.transform.position,
-                Quaternion.identity,
+                spawnPos,
+                spawnRot,
                 0,
                 new object[] { userID }
             );
 
             // 追従スクリプトにターゲットを渡す
             TrackingRHand trackingRHand = card.GetComponent<TrackingRHand>();
-            trackingRHand.TrackCard(RHandTarget);
+            if (trackingRHand != null && RHandTarget != null)
+            {
+                trackingRHand.TrackCard(RHandTarget);
+            }
 
             isCreated = true;
         }
+        // 既にある → 破棄
         else
         {
-            // 2回目以降：SetActive のトグル
             if (card != null)
             {
-                card.SetActive(!card.activeSelf);
+                PhotonNetwork.Destroy(card);
+                card = null;
             }
+            isCreated = false;
         }
     }
 }

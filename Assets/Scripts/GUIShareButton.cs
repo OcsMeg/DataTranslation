@@ -1,26 +1,23 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-
-public class ShareButton : MonoBehaviour
+public class GUIShareButton : MonoBehaviour
 {
-    [Header("UI References")]
     [SerializeField] private Button shareButton;
     [SerializeField] private Transform imageParent; // 画像（Toggle付き）の親オブジェクト
+    [SerializeField] private TextMeshProUGUI debugText;
 
     private List<Toggle> toggles = new List<Toggle>();
-    
-    // デバッグ用
-    //[SerializeField] private TextMeshProUGUI shareText;
     private DataSharing dataSharing;
-
+    [SerializeField] private ImageLoader imageLoader;
     void Start()
     {
         GameObject playerRoot = GameObject.FindGameObjectWithTag("PlayerRoot");
         dataSharing = playerRoot.GetComponent<DataSharing>();
+        shareButton.interactable = false;
     }
-    
+
     private void SearchToggle()
     {
         toggles.Clear();
@@ -34,55 +31,43 @@ public class ShareButton : MonoBehaviour
                 tg.onValueChanged.AddListener(OnToggleChanged);
             }
         }
-
         // 初期状態ではボタン無効
         shareButton.interactable = false;
         shareButton.onClick.AddListener(OnShareButtonClicked);
     }
-
+    
     public void SetSearchToggle()
     {
         SearchToggle();
     }
-    /// <summary>
-    /// トグル状態が変化したときに呼ばれる
-    /// 少なくとも1つONならボタン有効化
-    /// </summary>
+    
     private void OnToggleChanged(bool _)
     {
         bool anySelected = toggles.Exists(t => t.isOn);
         shareButton.interactable = anySelected;
     }
-
-    /// <summary>
-    /// ボタンが押されたとき、選択された画像の TextMeshPro を読み取る
-    /// </summary>
+    
     private void OnShareButtonClicked()
     {
-        List<int> selectedID = new List<int>();
-
         foreach (Toggle tg in toggles)
         {
             if (tg.isOn)
             {
                 // 子オブジェクトから FileIDMemory を探す
-                FileIDMemory id = tg.GetComponentInChildren<FileIDMemory>();
+                UserIDMemory id = tg.GetComponentInChildren<UserIDMemory>();
 
                 if (id != null)
                 {
-                    selectedID.Add(id.GetFileID());
+                    //selectedID.Add(id.GetUserID());
+                    DataSharing(id.GetUserID());
                 }
             }
         }
-        DataSharing(selectedID);
-    }
-
-    /// <summary>
-    /// データ共有処理（あなたが実装）
-    /// </summary>
-    private void DataSharing(List<int> selectedID)
-    {
+        imageLoader.CloseDisplayCanvas();
         shareButton.interactable = false;
-        dataSharing.StartSharing(selectedID);
+    }
+    private void DataSharing(string userID)
+    {
+        dataSharing.ReceiveUserID(userID);
     }
 }

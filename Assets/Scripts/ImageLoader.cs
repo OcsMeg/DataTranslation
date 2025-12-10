@@ -17,6 +17,7 @@ public class ImageLoader : MonoBehaviour
     private string fileName;
     private int fileNum;
     private PhotonView photonView;
+    [SerializeField] private GameObject CanvasSpawn;
 
     // ---------- APIレスポンス用データクラス ----------
     [System.Serializable]
@@ -78,12 +79,13 @@ public class ImageLoader : MonoBehaviour
     /// <summary>
     /// Canvas を表示し、画像リストを読み込む
     /// </summary>
-    public void ShowDisplay()
+    private void ShowDisplay()
     {
         if (displayCanvas == null) return;
 
         displayCanvas.enabled = true;
-
+        displayCanvas.transform.position = CanvasSpawn.transform.position;
+        displayCanvas.transform.rotation = CanvasSpawn.transform.rotation;
         ClearImages();
         StartCoroutine(LoadImagesFlow());
     }
@@ -91,7 +93,7 @@ public class ImageLoader : MonoBehaviour
     /// <summary>
     /// Canvas を非表示にし、画像をクリア
     /// </summary>
-    public void HideDisplay()
+    private void HideDisplay()
     {
         if (displayCanvas == null) return;
 

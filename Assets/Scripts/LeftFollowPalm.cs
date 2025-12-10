@@ -6,6 +6,8 @@ public class LeftFollowPalm : MonoBehaviour
 {
     XRHandSubsystem subsystem;
 
+    [SerializeField] private HandUIRaycaster handUIRaycaster; // ★ 右手側の HandUIRaycaster をアサイン
+
     void Start()
     {
         subsystem = XRGeneralSettings.Instance?
@@ -16,6 +18,10 @@ public class LeftFollowPalm : MonoBehaviour
 
     void Update()
     {
+        // UI を押している間は位置・回転を更新しない
+        if (handUIRaycaster != null && handUIRaycaster.IsPressingUI)
+            return;
+
         if (subsystem == null) return;
 
         var left = subsystem.leftHand;
@@ -25,7 +31,6 @@ public class LeftFollowPalm : MonoBehaviour
 
         if (palm.TryGetPose(out Pose pose))
         {
-            // 手のひらの位置と向きに追従
             transform.SetPositionAndRotation(pose.position, pose.rotation);
         }
     }

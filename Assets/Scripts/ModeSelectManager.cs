@@ -24,6 +24,11 @@ public class ModeSelectManager : MonoBehaviour
     // XRコントローラー
     private InputDevice leftController;
     private InputDevice rightController;
+    
+    // 前フレームのボタン状態を保存するフラグ
+    private bool prevLeftGrip = false;
+    private bool prevRightGrip = false;
+    private bool prevAPressed = false;
 
     void Start()
     {
@@ -43,20 +48,29 @@ public class ModeSelectManager : MonoBehaviour
             GetControllers();
         }
 
-        // 左コントローラー Grip Button で左移動
-        if (leftController.TryGetFeatureValue(CommonUsages.gripButton, out bool leftGrip) && leftGrip)
+        // 現在のボタン状態を取得
+        bool leftGrip = false;
+        bool rightGrip = false;
+        bool aPressed = false;
+
+        leftController.TryGetFeatureValue(CommonUsages.gripButton, out leftGrip);
+        rightController.TryGetFeatureValue(CommonUsages.gripButton, out rightGrip);
+        rightController.TryGetFeatureValue(CommonUsages.primaryButton, out aPressed);
+
+        // 左グリップ：false → true になった瞬間だけ左に移動
+        if (leftGrip && !prevLeftGrip)
         {
             MoveSelectionLeft();
         }
 
-        // 右コントローラー Grip Button で右移動
-        if (rightController.TryGetFeatureValue(CommonUsages.gripButton, out bool rightGrip) && rightGrip)
+        // 右グリップ：false → true になった瞬間だけ右に移動
+        if (rightGrip && !prevRightGrip)
         {
             MoveSelectionRight();
         }
 
-        // 右コントローラー Aボタン（primaryButton）で決定
-        if (rightController.TryGetFeatureValue(CommonUsages.primaryButton, out bool aPressed) && aPressed)
+        // Aボタン：false → true になった瞬間だけ決定
+        if (aPressed && !prevAPressed)
         {
             SelectMode(modelists[selectIndex]);
         }
@@ -65,15 +79,19 @@ public class ModeSelectManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Z))
         {
             SelectMode(PlayerMode.PlayMode.GOD);
-            
         }
 
         // PCデバッグ用 左右
         if (Input.GetKeyDown(KeyCode.LeftArrow)) MoveSelectionLeft();
         if (Input.GetKeyDown(KeyCode.RightArrow)) MoveSelectionRight();
         if (Input.GetKeyDown(KeyCode.Return)) SelectMode(modelists[selectIndex]);
-    }
 
+        // 最後に「今回の状態」を「前回の状態」として保存
+        prevLeftGrip = leftGrip;
+        prevRightGrip = rightGrip;
+        prevAPressed = aPressed;
+    }
+    
     // XRコントローラー取得
     private void GetControllers()
     {
