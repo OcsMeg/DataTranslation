@@ -18,6 +18,7 @@ public class ImageLoader : MonoBehaviour
     private int fileNum;
     private PhotonView photonView;
     [SerializeField] private GameObject CanvasSpawn;
+    private int pending;
 
     // ---------- APIレスポンス用データクラス ----------
     [System.Serializable]
@@ -52,7 +53,6 @@ public class ImageLoader : MonoBehaviour
     {
         api = GetComponent<ApiClient>();
         photonView = GetComponent<PhotonView>();
-
         userName = PlayerMode.GetPlayerName();
 
         if (displayCanvas != null)
@@ -126,12 +126,8 @@ public class ImageLoader : MonoBehaviour
 
     IEnumerator LoadImagesFlow()
     {
-        Debug.Log("=== STEP1: /files を取得 ===");
-
         yield return StartCoroutine(api.Get($"/files?user_name={userName}", (json) =>
         {
-            Debug.Log("[/files] Response JSON: " + json);
-
             FilesResponse res = JsonUtility.FromJson<FilesResponse>(json);
 
             if (res.files == null || res.files.Length == 0)
@@ -140,33 +136,28 @@ public class ImageLoader : MonoBehaviour
                 return;
             }
 
+            pending = res.files.Length;
+
             foreach (var f in res.files)
             {
-                fileName = f.file_name;
-                fileNum = f.file_id;
-                StartCoroutine(LoadOneFile(f.file_id));
+                int id = f.file_id;          // ★ローカルに保持
+                string name = f.file_name;   // ★ローカルに保持
+                StartCoroutine(LoadOneFile(id, name));
             }
         }));
     }
 
-    IEnumerator LoadOneFile(int id)
+    IEnumerator LoadOneFile(int id, string name)
     {
-        Debug.Log($"=== STEP2: /files/{id} を取得 ===");
-
         yield return StartCoroutine(api.Get($"/files/{id}", (json) =>
         {
-            Debug.Log($"[/files/{id}] Response JSON: " + json);
-
             DownloadInfo dl = JsonUtility.FromJson<DownloadInfo>(json);
-
-            StartCoroutine(DownloadImage(dl.download_url));
+            StartCoroutine(DownloadImage(dl.download_url, id, name));
         }));
     }
 
-    IEnumerator DownloadImage(string url)
+    IEnumerator DownloadImage(string url, int id, string name)
     {
-        Debug.Log("[ImageLoader] 画像取得: " + url);
-
         UnityWebRequest req = UnityWebRequestTexture.GetTexture(url);
         yield return req.SendWebRequest();
 
@@ -178,24 +169,26 @@ public class ImageLoader : MonoBehaviour
 
         Texture2D tex = DownloadHandlerTexture.GetContent(req);
 
-        // Prefab 作成
         GameObject obj = Instantiate(imagePrefab, parent);
-        RawImage img = obj.GetComponent<RawImage>();
+
+        RawImage img = obj.GetComponentInChildren<RawImage>();
         img.texture = tex;
 
         RectTransform rt = obj.GetComponent<RectTransform>();
         rt.sizeDelta = new Vector2(300, 300);
 
         TextMeshProUGUI tmp = obj.GetComponentInChildren<TextMeshProUGUI>();
-        if (tmp != null) tmp.text = fileName;
+        if (tmp != null) tmp.text = name;      // ここで name
 
         FileIDMemory mem = obj.GetComponent<FileIDMemory>();
-        mem.SetFileID(fileNum);
+        mem.SetFileID(id);                     // ここで id
 
-        Debug.Log("[ImageLoader] 画像生成完了");
-
-        // トグル設定（既存仕様を維持）
-        ShareButton shareButtonScript = GetComponentInChildren<ShareButton>();
-        shareButtonScript.SetSearchToggle();
+        // （任意）最後の1枚が生成されたタイミングで1回だけ
+        pending--;
+        if (pending == 0)
+        {
+            ShareButton shareButtonScript = GetComponentInChildren<ShareButton>();
+            shareButtonScript.SetSearchToggle();
+        }
     }
 }

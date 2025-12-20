@@ -28,21 +28,21 @@ public class DisplayToggleController : MonoBehaviour
         GetLeftController();
     }
 
-    void OnEnable()
-    {
-        if (leftHandDetector != null)
-        {
-            leftHandDetector.OnFist += OnLeftHandFist;
-        }
-    }
-
-    void OnDisable()
-    {
-        if (leftHandDetector != null)
-        {
-            leftHandDetector.OnFist -= OnLeftHandFist;
-        }
-    }
+    // void OnEnable()
+    // {
+    //     if (leftHandDetector != null)
+    //     {
+    //         leftHandDetector.OnFist += OnLeftHandFist;
+    //     }
+    // }
+    //
+    // void OnDisable()
+    // {
+    //     if (leftHandDetector != null)
+    //     {
+    //         leftHandDetector.OnFist -= OnLeftHandFist;
+    //     }
+    // }
 
     void Update()
     {
@@ -78,6 +78,10 @@ public class DisplayToggleController : MonoBehaviour
         ToggleCanvas();
     }
 
+    public void ChangeToggleCanvas()
+    {
+        ToggleCanvas();
+    }
     private void ToggleCanvas()
     {
         if (imageLoader == null) return;

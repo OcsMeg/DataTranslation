@@ -28,11 +28,16 @@ public class GUIShareButton : MonoBehaviour
             if (tg != null)
             {
                 toggles.Add(tg);
+                
+                // 二重登録防止
+                tg.onValueChanged.RemoveListener(OnToggleChanged);
                 tg.onValueChanged.AddListener(OnToggleChanged);
             }
         }
         // 初期状態ではボタン無効
         shareButton.interactable = false;
+        // 2重登録防止
+        shareButton.onClick.RemoveListener(OnShareButtonClicked);
         shareButton.onClick.AddListener(OnShareButtonClicked);
     }
     

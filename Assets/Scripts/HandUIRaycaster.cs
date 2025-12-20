@@ -68,7 +68,7 @@ public class HandUIRaycaster : MonoBehaviour
         {
             hit = results[0];
 
-            // ★ まず Z 距離を見る
+            // まず Z 距離を見る
             float dist = Vector3.Distance(tipPose.position, hit.worldPosition);
 
             // hoverDistance より遠いときは「何も指していない」扱いにする

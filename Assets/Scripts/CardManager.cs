@@ -6,15 +6,17 @@ using UnityEngine.XR;
 public class CardManager : MonoBehaviour
 {
     [Header("参照")]
-    [SerializeField] private GameObject RHandTarget;              // 右手の追従ターゲット
-    [SerializeField] private HandGestureDetector rightHandDetector; // 右手用ジェスチャ検出（useRightHand = true にしておく）
+    [SerializeField] private GameObject RHandTarget;
+    [SerializeField] private HandGestureDetector rightHandDetector;
 
-    private GameObject card;     // 生成したカード
+    // 追加：DataSharing参照（同一プレイヤー内の共有状態を見る）
+    [SerializeField] private DataSharing dataSharing;
+
+    private GameObject card;
     private bool isCreated = false;
 
     private PhotonView photonView;
 
-    // XR右コントローラー
     private InputDevice rightController;
     private bool prevBPressed = false;
 
@@ -23,11 +25,14 @@ public class CardManager : MonoBehaviour
     void Awake()
     {
         photonView = GetComponent<PhotonView>();
+
+        // 同じオブジェクト or 親から探す（どっちでも拾えるように）
+        // dataSharing = GetComponent<DataSharing>();
+        // if (dataSharing == null) dataSharing = GetComponentInParent<DataSharing>();
     }
 
     void OnEnable()
     {
-        // 右手のグーイベントに登録
         if (rightHandDetector != null)
         {
             rightHandDetector.OnFist += HandleRightHandFist;
@@ -36,7 +41,6 @@ public class CardManager : MonoBehaviour
 
     void OnDisable()
     {
-        // イベント解除（シーン遷移などで重複登録しないように）
         if (rightHandDetector != null)
         {
             rightHandDetector.OnFist -= HandleRightHandFist;
@@ -50,14 +54,11 @@ public class CardManager : MonoBehaviour
 
     void Update()
     {
-        // 自分のプレイヤー以外は無視
         if (!photonView.IsMine) return;
 
-        // Hover 以外のモードでは何もしない
         if (ShareMode.GetShareMethod() != ShareMode.ShareMethod.Hover)
             return;
 
-        // --- コントローラ B ボタンでのトグル ---
         if (!rightController.isValid)
             GetRightController();
 
@@ -75,32 +76,23 @@ public class CardManager : MonoBehaviour
 
         prevBPressed = bPressedNow;
 
-        // PC テスト用キー
         if (Input.GetKeyDown(KeyCode.Y))
         {
             ToggleCardCreateOrDestroy();
         }
     }
 
-    /// <summary>
-    /// 右手がグーになった瞬間に呼ばれる（HandGestureDetector.OnFist）
-    /// </summary>
     private void HandleRightHandFist()
     {
-        // 念のためオーナーチェック & ShareMode チェック
         if (!photonView.IsMine) return;
         if (ShareMode.GetShareMethod() != ShareMode.ShareMethod.Hover) return;
 
         ToggleCardCreateOrDestroy();
     }
 
-    /// <summary>
-    /// XR右コントローラー取得
-    /// </summary>
     private void GetRightController()
     {
         var devices = new List<InputDevice>();
-
         InputDevices.GetDevicesWithCharacteristics(
             InputDeviceCharacteristics.Right | InputDeviceCharacteristics.Controller,
             devices
@@ -113,14 +105,18 @@ public class CardManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// カードがなければ生成して右手に追従、あれば破棄
-    /// </summary>
     private void ToggleCardCreateOrDestroy()
     {
         // まだない → 生成
         if (!isCreated || card == null)
         {
+            // 追加：共有中なら生成しない（破棄は許可）
+            if (dataSharing != null && dataSharing.IsSharing)
+            {
+                Debug.Log("[CardManager] 共有中のためカード生成を抑制しました");
+                return;
+            }
+
             userID = PlayerMode.GetPlayerName();
 
             Vector3 spawnPos = RHandTarget != null
@@ -139,7 +135,6 @@ public class CardManager : MonoBehaviour
                 new object[] { userID }
             );
 
-            // 追従スクリプトにターゲットを渡す
             TrackingRHand trackingRHand = card.GetComponent<TrackingRHand>();
             if (trackingRHand != null && RHandTarget != null)
             {
@@ -148,7 +143,6 @@ public class CardManager : MonoBehaviour
 
             isCreated = true;
         }
-        // 既にある → 破棄
         else
         {
             if (card != null)

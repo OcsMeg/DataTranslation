@@ -52,4 +52,11 @@ public class GUIMethod : MonoBehaviour
         }
         shareScript.SetSearchToggle();
     }
+
+    public void CancelShare()
+    {
+        //シェア用キャンバスを閉じる
+        ClearImages();
+        displayCanvas.enabled = false;
+    }
 }

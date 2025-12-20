@@ -58,7 +58,7 @@ public class ReceiveID : MonoBehaviour, IPunInstantiateMagicCallback
         {
             Debug.Log($"[ReceiveID] このReceivingCardの持ち主は {userID} です");
 
-            if (dataSharing != null)
+            if (dataSharing !=null && userID != PlayerMode.GetPlayerName())
             {
                 dataSharing.ReceiveUserID(userID);
             }

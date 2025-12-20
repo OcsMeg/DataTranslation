@@ -14,17 +14,15 @@ public class GameManager : MonoBehaviourPunCallbacks
     public Vector3 spawnPoint;
     [SerializeField] private GameObject room;
     [SerializeField] private GameObject passThrough;
+    [SerializeField] private GameObject RayJudgement;
 
-    // ★ ルームのカスタムプロパティで使うキー
+    // ルームのカスタムプロパティで使うキー
     private const string ROOM_USER_LIST_KEY = "UserList";
 
     void Start()
     {
-        // ★ ここでユーザ名を Photon に渡しておく
-        //    自分のシステム側のユーザ名を使ってください
-        //    例：UserNameManager.CurrentUserName など
+        // ここでユーザ名を Photon に渡しておく
         PhotonNetwork.NickName = PlayerMode.GetPlayerName();
-        // ↑ 実際は上の行を自分のユーザ名変数に書き換えてください
 
         PhotonNetwork.ConnectUsingSettings();
 
@@ -61,8 +59,47 @@ public class GameManager : MonoBehaviourPunCallbacks
             }
         }
     }
+    
+    // RayJudgementを生成し、player配下のModelタグオブジェクトの子にするヘルパー
+    private void CreateRayJudgementForPlayer(GameObject ownerPlayer)
+    {
+        if (RayJudgement == null)
+        {
+            Debug.LogError("RayJudgement prefab is not set in the inspector.");
+            return;
+        }
 
+        // Photon用に、RayJudgementプレハブは PhotonNetwork の Prefab リストに登録されている前提
+        GameObject rayObj = PhotonNetwork.Instantiate(
+            RayJudgement.name,
+            ownerPlayer.transform.position,
+            ownerPlayer.transform.rotation,
+            0,
+            new object[] { PlayerMode.GetPlayerName() }
+        );
 
+        // player配下から Model タグを持つオブジェクトを探す
+        Transform modelTransform = null;
+        foreach (Transform t in ownerPlayer.GetComponentsInChildren<Transform>())
+        {
+            if (t.CompareTag("Model"))
+            {
+                modelTransform = t;
+                break;
+            }
+        }
+
+        if (modelTransform != null)
+        {
+            // ローカル座標を維持したいなら true/false を調整
+            rayObj.transform.SetParent(modelTransform, false);
+        }
+        else
+        {
+            Debug.LogWarning("Model タグを持つ子オブジェクトが player 配下に見つかりませんでした。");
+        }
+    }
+    
     // ルームに参加する処理
     public override void OnConnectedToMaster()
     {
@@ -94,15 +131,34 @@ public class GameManager : MonoBehaviourPunCallbacks
         // VR・MR・神視点別にプレイヤー生成
         if (PlayerMode.GetSelectedPlayMode() == PlayerMode.PlayMode.MR)
         {
-            camera = Instantiate(Resources.Load<GameObject>("Camera/MROrigin"), spawnPoint, Quaternion.identity);
+            camera = Instantiate(Resources.Load<GameObject>("Camera/MRCam"), spawnPoint, Quaternion.identity);
             player = PhotonNetwork.Instantiate("MRPlayerPsys", spawnPoint, Quaternion.identity);
             room.SetActive(false);
+            
+            if (camera != null && player != null)
+            {
+                var searchFunction = camera.GetComponent<SearchFunction>();
+                if (searchFunction != null)
+                {
+                    searchFunction.SetFunction(player);
+                }
+                else
+                {
+                    Debug.LogWarning("[GameManager] SearchFunction component was not found on camera.");
+                }
+            }
+            
+            // RayJudgement生成＆Modelタグオブジェクトの子にする
+            CreateRayJudgementForPlayer(player);
         }
         else if (PlayerMode.GetSelectedPlayMode() == PlayerMode.PlayMode.VR)
         {
             camera = Instantiate(Resources.Load<GameObject>("Camera/VROrigin"), spawnPoint, Quaternion.identity);
             player = PhotonNetwork.Instantiate("VRPlayerPsys", spawnPoint, Quaternion.identity);
             passThrough.SetActive(false);
+            
+            // RayJudgement生成＆Modelタグオブジェクトの子にする
+            CreateRayJudgementForPlayer(player);
         }
         else if (PlayerMode.GetSelectedPlayMode() == PlayerMode.PlayMode.GOD)
         {
@@ -116,7 +172,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
     }
 
-    // ★ 他のプレイヤーがルームから抜けた時にユーザリストから削除
+    // 他のプレイヤーがルームから抜けた時にユーザリストから削除
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         base.OnPlayerLeftRoom(otherPlayer);

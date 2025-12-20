@@ -14,6 +14,7 @@ public class ModeSelectManager : MonoBehaviour
     private LoginManager loginManager;
     [SerializeField] private Canvas loginCanvas;
     [SerializeField] private Canvas modeSelectCanvas;
+    [SerializeField] private Canvas shareModeSelectCanvas;
 
     private PlayerMode.PlayMode[] modelists = new PlayerMode.PlayMode[]
     {
@@ -35,6 +36,7 @@ public class ModeSelectManager : MonoBehaviour
         UpdateSelectionUI();
 
         loginCanvas.enabled = false;
+        shareModeSelectCanvas.enabled = false;
         loginManager = GetComponent<LoginManager>();
 
         GetControllers();
@@ -158,13 +160,11 @@ public class ModeSelectManager : MonoBehaviour
         Debug.Log($"Selected Mode: {mode}");
 
         modeSelectCanvas.enabled = false;
-        loginCanvas.enabled = true;
+        shareModeSelectCanvas.enabled = true;
 
         if (PlayerMode.GetSelectedPlayMode() == PlayerMode.PlayMode.GOD)
         {
             SceneManager.LoadScene("PlayScene");
         }
-
-        loginManager.LoginStart();
     }
 }

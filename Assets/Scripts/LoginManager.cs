@@ -35,7 +35,7 @@ public class LoginManager : MonoBehaviour
         if (!isLogin) return;
 
         // Aボタン検知（右コントローラー）
-        if (rightController.TryGetFeatureValue(CommonUsages.secondaryButton, out bool bPressed) && bPressed)
+        if (rightController.TryGetFeatureValue(CommonUsages.primaryButton, out bool aPressed) && aPressed)
         {
             if (!isRequesting)
             {

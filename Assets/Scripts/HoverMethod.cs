@@ -19,4 +19,9 @@ public class HoverMethod : MonoBehaviour
         TrackingRHand trackingRHand = shareCard.GetComponentInChildren<TrackingRHand>();
         trackingRHand.TrackCard(RHandTarget);
     }
+
+    public void DestroySharingCard()
+    {
+        PhotonNetwork.Destroy(shareCard);
+    }
 }

@@ -27,7 +27,7 @@ public class ShareButton : MonoBehaviour
         // 親の子から Toggle を全て取得
         foreach (Transform child in imageParent)
         {
-            Toggle tg = child.GetComponent<Toggle>();
+            Toggle tg = child.GetComponentInChildren<Toggle>();
             if (tg != null)
             {
                 toggles.Add(tg);
@@ -82,6 +82,12 @@ public class ShareButton : MonoBehaviour
     /// </summary>
     private void DataSharing(List<int> selectedID)
     {
+        // 選択状態をクリア（イベントを発火させない）
+        foreach (var tg in toggles)
+        {
+            if (tg != null) tg.SetIsOnWithoutNotify(false);
+        }
+        
         shareButton.interactable = false;
         dataSharing.StartSharing(selectedID);
     }
