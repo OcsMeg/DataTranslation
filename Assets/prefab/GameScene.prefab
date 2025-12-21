@@ -49,6 +49,7 @@ MonoBehaviour:
   spawnPoint: {x: 0, y: 0, z: 0}
   room: {fileID: 3771281606126246151}
   passThrough: {fileID: 7575857583873124312}
+  RayJudgement: {fileID: 8710482314297227238, guid: 761290be7edb24df58c397399bfb909c, type: 3}
 --- !u!1 &1173208058036274524
 GameObject:
   m_ObjectHideFlags: 0
@@ -320,7 +321,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4341023831869762850}
   - component: {fileID: 6370527316042388036}
-  - component: {fileID: 8093139250451884193}
   - component: {fileID: 1850241380477687081}
   m_Layer: 0
   m_Name: EventSystem
@@ -359,38 +359,6 @@ MonoBehaviour:
   m_FirstSelected: {fileID: 0}
   m_sendNavigationEvents: 1
   m_DragThreshold: 10
---- !u!114 &8093139250451884193
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2500588102569683014}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f1a9a1d119a5944aacfb87d1ec283a2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SendPointerHoverToParent: 1
-  rayTransform: {fileID: 0}
-  m_Cursor: {fileID: 0}
-  joyPadClickButton: 1
-  gazeClickKey: 32
-  performSphereCastForGazepointer: 0
-  useRightStickScroll: 1
-  rightStickDeadZone: 0.15
-  useSwipeScroll: 1
-  swipeDragThreshold: 2
-  swipeDragScale: 1
-  InvertSwipeXAxis: 0
-  angleDragThreshold: 1
-  m_SpherecastRadius: 1
-  m_HorizontalAxis: Horizontal
-  m_VerticalAxis: Vertical
-  m_SubmitButton: Submit
-  m_CancelButton: Cancel
-  m_InputActionsPerSecond: 10
-  m_AllowActivationOnMobileDevice: 1
 --- !u!114 &1850241380477687081
 MonoBehaviour:
   m_ObjectHideFlags: 0

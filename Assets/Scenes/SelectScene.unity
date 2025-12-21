@@ -135,6 +135,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2958745739994663016, guid: 262047fb4c2be478191ee70ae9cac81f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3282283147614268801, guid: 262047fb4c2be478191ee70ae9cac81f, type: 3}
       propertyPath: m_text
       value: Choice Share Mode
