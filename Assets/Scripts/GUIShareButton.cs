@@ -70,6 +70,7 @@ public class GUIShareButton : MonoBehaviour
         }
         imageLoader.CloseDisplayCanvas();
         shareButton.interactable = false;
+        dataSharing.StopSharing();
     }
     private void DataSharing(string userID)
     {

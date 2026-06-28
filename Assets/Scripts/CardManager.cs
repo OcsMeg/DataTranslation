@@ -31,21 +31,21 @@ public class CardManager : MonoBehaviour
         // if (dataSharing == null) dataSharing = GetComponentInParent<DataSharing>();
     }
 
-    void OnEnable()
-    {
-        if (rightHandDetector != null)
-        {
-            rightHandDetector.OnFist += HandleRightHandFist;
-        }
-    }
-
-    void OnDisable()
-    {
-        if (rightHandDetector != null)
-        {
-            rightHandDetector.OnFist -= HandleRightHandFist;
-        }
-    }
+    // void OnEnable()
+    // {
+    //     if (rightHandDetector != null)
+    //     {
+    //         rightHandDetector.OnFist += HandleRightHandFist;
+    //     }
+    // }
+    //
+    // void OnDisable()
+    // {
+    //     if (rightHandDetector != null)
+    //     {
+    //         rightHandDetector.OnFist -= HandleRightHandFist;
+    //     }
+    // }
 
     void Start()
     {
@@ -82,7 +82,7 @@ public class CardManager : MonoBehaviour
         }
     }
 
-    private void HandleRightHandFist()
+    public void HandleRightHandFist()
     {
         if (!photonView.IsMine) return;
         if (ShareMode.GetShareMethod() != ShareMode.ShareMethod.Hover) return;
@@ -128,7 +128,7 @@ public class CardManager : MonoBehaviour
                 : Quaternion.identity;
 
             card = PhotonNetwork.Instantiate(
-                "ReceivingCard",
+                "ReceivingCardRoot",
                 spawnPos,
                 spawnRot,
                 0,

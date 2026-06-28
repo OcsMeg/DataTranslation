@@ -22,22 +22,6 @@ public class ShareCancel : MonoBehaviour
         GetRightController();
     }
 
-    void OnEnable()
-    {
-        if (handGesture != null)
-        {
-            handGesture.OnScissors += HandleScissors;
-        }
-    }
-
-    void OnDisable()
-    {
-        if (handGesture != null)
-        {
-            handGesture.OnScissors -= HandleScissors;
-        }
-    }
-
     void Update()
     {
         //共有中じゃないと処理しない

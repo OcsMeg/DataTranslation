@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.XR;
 using Photon.Pun;
 using System.Collections.Generic;
+using TMPro;
 
 public class ControllerRaySelect : MonoBehaviour
 {
@@ -21,6 +22,7 @@ public class ControllerRaySelect : MonoBehaviour
     // 前フレームのボタン状態
     private bool prevTriggerPressed = false; // 人差し指トリガー
     private bool prevGripPressed = false;    // 中指グリップ（レイ終了用）
+    [SerializeField] private TextMeshProUGUI debugText;
 
     private void Awake()
     {
@@ -55,25 +57,6 @@ public class ControllerRaySelect : MonoBehaviour
 
         // 右手コントローラー取得
         GetRightController();
-
-        // 手ジェスチャのイベント購読
-        if (handGesture != null)
-        {
-            handGesture.OnFist += OnFistDetected;
-        }
-        else
-        {
-            Debug.LogWarning("[ControllerRaySelect] HandGestureDetector が設定されていません");
-        }
-    }
-
-    private void OnDestroy()
-    {
-        // イベント購読解除（念のため）
-        if (handGesture != null)
-        {
-            handGesture.OnFist -= OnFistDetected;
-        }
     }
 
     private void Update()
@@ -136,8 +119,9 @@ public class ControllerRaySelect : MonoBehaviour
     /// <summary>
     /// グーになった瞬間のイベントハンドラ（人差し指トリガーと同じ決定処理を呼ぶ）
     /// </summary>
-    private void OnFistDetected()
+    public void RightRockDetected()
     {
+        if (ShareMode.GetShareMethod() != ShareMode.ShareMethod.Ray) return;
         if (!isActive)
         {
             // Ray がまだ有効じゃないなら何もしない
@@ -159,6 +143,7 @@ public class ControllerRaySelect : MonoBehaviour
         if (!Physics.Raycast(origin, direction, out RaycastHit hit, maxDistance, hitLayers))
         {
             Debug.Log("[ControllerRaySelect] 決定しようとしたが、Ray の先にオブジェクトはありません");
+            debugText.text = "No Object";
             return;
         }
 
@@ -166,6 +151,7 @@ public class ControllerRaySelect : MonoBehaviour
         if (view == null)
         {
             Debug.Log("[ControllerRaySelect] PhotonView が見つかりません");
+            debugText.text = "No PhotonView";
             return;
         }
 
@@ -175,11 +161,13 @@ public class ControllerRaySelect : MonoBehaviour
         if (receiveID == null)
         {
             Debug.Log("[ControllerRaySelect] ReceiveID コンポーネントが見つかりません");
+            debugText.text = "No ReceiveID";
             return;
         }
 
         string userId = receiveID.GetUserID();
         Debug.Log($"[ControllerRaySelect] Ray で当たったオブジェクトの userID = {userId}");
+        debugText.text = userId;
 
         if (dataSharing != null)
         {
@@ -189,6 +177,7 @@ public class ControllerRaySelect : MonoBehaviour
         else
         {
             Debug.LogError("[ControllerRaySelect] dataSharing が設定されていません");
+            debugText.text = "No DataSharing";
         }
     }
 
@@ -214,6 +203,7 @@ public class ControllerRaySelect : MonoBehaviour
         {
             line.enabled = false;
         }
+        dataSharing.StopSharing();
     }
 
     // 右手コントローラー取得
@@ -232,7 +222,7 @@ public class ControllerRaySelect : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[ControllerRaySelect] 右コントローラーが見つかりませんでした");
+            Debug.Log("[ControllerRaySelect] 右コントローラーが見つかりませんでした");
         }
     }
 }

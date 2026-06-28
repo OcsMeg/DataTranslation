@@ -138,6 +138,7 @@ public class DataSharing : MonoBehaviour
                 if (ShareMode.GetShareMethod() == ShareMode.ShareMethod.Hover)
                 {
                     hoverMethod.DestroySharingCard();
+                    StopSharing();
                 } else if (ShareMode.GetShareMethod() == ShareMode.ShareMethod.Ray)
                 {
                     raySelect.DeactivateRay();
@@ -159,7 +160,8 @@ public class DataSharing : MonoBehaviour
         if (isSharing)
         {
             debugText.text = "true";
-        } else
+        }
+        else
         {
             debugText.text = "false";
         }

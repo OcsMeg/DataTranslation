@@ -851,6 +851,7 @@ MonoBehaviour:
   shareGUIButton: {fileID: 3946287372557805823}
   shareScript: {fileID: 6925192861670227438}
   debugText: {fileID: 6536748600814363834}
+  dataSharing: {fileID: 4528709380105178774}
 --- !u!114 &6011372136079595849
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -962,6 +963,7 @@ MonoBehaviour:
     m_Bits: 512
   line: {fileID: 8680908882934191026}
   handGesture: {fileID: 3031679593480345475}
+  debugText: {fileID: 6536748600814363834}
 --- !u!120 &8680908882934191026
 LineRenderer:
   serializedVersion: 2
@@ -1708,6 +1710,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: bdb6b12e3b40849f1b2aa733525828e1, type: 3}
+      propertyPath: m_TagString
+      value: Model
+      objectReference: {fileID: 0}
     - target: {fileID: 1161837160611805812, guid: bdb6b12e3b40849f1b2aa733525828e1, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -2065,7 +2071,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5541064757155684878, guid: 987e1cf6b2fa846bda316f4118a94bce, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8501410712028021673, guid: 987e1cf6b2fa846bda316f4118a94bce, type: 3}
       propertyPath: m_PresetInfoIsWorld

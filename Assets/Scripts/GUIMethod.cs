@@ -12,6 +12,7 @@ public class GUIMethod : MonoBehaviour
     [SerializeField] private Button shareGUIButton;
     [SerializeField] private GUIShareButton shareScript;
     [SerializeField] private TextMeshProUGUI debugText;
+    [SerializeField] private DataSharing dataSharing;
 
     
     private void ClearImages()
@@ -58,5 +59,6 @@ public class GUIMethod : MonoBehaviour
         //シェア用キャンバスを閉じる
         ClearImages();
         displayCanvas.enabled = false;
+        dataSharing.StopSharing();
     }
 }

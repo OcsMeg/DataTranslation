@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject room;
     [SerializeField] private GameObject passThrough;
     [SerializeField] private GameObject RayJudgement;
+    private ChaseCamerarig chaseCam;
 
     // ルームのカスタムプロパティで使うキー
     private const string ROOM_USER_LIST_KEY = "UserList";
@@ -77,27 +78,9 @@ public class GameManager : MonoBehaviourPunCallbacks
             0,
             new object[] { PlayerMode.GetPlayerName() }
         );
-
-        // player配下から Model タグを持つオブジェクトを探す
-        Transform modelTransform = null;
-        foreach (Transform t in ownerPlayer.GetComponentsInChildren<Transform>())
-        {
-            if (t.CompareTag("Model"))
-            {
-                modelTransform = t;
-                break;
-            }
-        }
-
-        if (modelTransform != null)
-        {
-            // ローカル座標を維持したいなら true/false を調整
-            rayObj.transform.SetParent(modelTransform, false);
-        }
-        else
-        {
-            Debug.LogWarning("Model タグを持つ子オブジェクトが player 配下に見つかりませんでした。");
-        }
+        
+        chaseCam = rayObj.GetComponent<ChaseCamerarig>();
+        chaseCam.FindModel(player);
     }
     
     // ルームに参加する処理
@@ -119,7 +102,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     // ルーム参加に成功した時の処理
     public override void OnJoinedRoom()
     {
-        // ★ まず自分の名前をルームのユーザリストに追加
+        // まず自分の名前をルームのユーザリストに追加
         AddUserNameToRoomList(PhotonNetwork.NickName);
 
         if (PhotonObject == null)

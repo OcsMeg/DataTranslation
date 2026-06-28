@@ -129,23 +129,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 622190938716050789, guid: 262047fb4c2be478191ee70ae9cac81f, type: 3}
       propertyPath: m_Text
-      value: user2
-      objectReference: {fileID: 0}
-    - target: {fileID: 2908461650559434329, guid: 262047fb4c2be478191ee70ae9cac81f, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2958745739994663016, guid: 262047fb4c2be478191ee70ae9cac81f, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3282283147614268801, guid: 262047fb4c2be478191ee70ae9cac81f, type: 3}
-      propertyPath: m_text
-      value: Choice Share Mode
-      objectReference: {fileID: 0}
-    - target: {fileID: 3282283147614268801, guid: 262047fb4c2be478191ee70ae9cac81f, type: 3}
-      propertyPath: m_margin.z
-      value: -40.99874
+      value: test2
       objectReference: {fileID: 0}
     - target: {fileID: 4720009681703320239, guid: 262047fb4c2be478191ee70ae9cac81f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -187,17 +171,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5148980061281619399, guid: 262047fb4c2be478191ee70ae9cac81f, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: -254
-      objectReference: {fileID: 0}
-    - target: {fileID: 5984723335993856475, guid: 262047fb4c2be478191ee70ae9cac81f, type: 3}
-      propertyPath: m_text
-      value: Push() Button
-      objectReference: {fileID: 0}
-    - target: {fileID: 7033497889988146834, guid: 262047fb4c2be478191ee70ae9cac81f, type: 3}
-      propertyPath: m_text
-      value: Push (B) Button
+    - target: {fileID: 5544359049475872997, guid: 262047fb4c2be478191ee70ae9cac81f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8895249281654149416, guid: 262047fb4c2be478191ee70ae9cac81f, type: 3}
       propertyPath: m_Name
